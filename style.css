@@ -1,0 +1,28 @@
+body {
+  background-color: #f8f9fa;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.card-body h6 {
+  font-size: 1rem;
+  margin-bottom: 0;
+}
+
+.card-body p.small {
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+#search-form {
+  max-width: 600px;
+  margin: 0 auto;
+}
