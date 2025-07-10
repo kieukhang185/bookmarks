@@ -10,17 +10,20 @@
 <body>
   <div class="container py-5">
     <h1 class="text-center mb-4">🌐 My Favorite Websites</h1>
-	<div class="container py-4">
-	  <form id="search-form" class="input-group mb-4" role="search">
+	<div class="container d-flex justify-content-between align-items-center py-4">
+	  <form id="search-form" class="input-group" role="search" style="max-width: 500px;">
 		<input
 		  type="text"
 		  id="search-input"
 		  class="form-control"
 		  placeholder="Search Google..."
-		  aria-label="Search Google"
 		/>
 		<button class="btn btn-outline-primary" type="submit">Search</button>
 	  </form>
+
+	  <button id="darkToggle" class="btn btn-sm btn-outline-dark ms-3">
+		🌙 Dark Mode
+	  </button>
 	</div>
     <div class="row" id="site-list">
       <!-- JavaScript will inject favorite sites here -->
