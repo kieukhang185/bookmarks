@@ -1,34 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My Favorite Websites</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Bookmark Cards</title>
+  <link rel="icon" type="image/x-icon" href="images/favicon.png">
+  <meta name="description" content="Card-based bookmark manager with live search, modals, and local backups."/>
   <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="container py-5">
-    <h1 class="text-center mb-4">🌐 My Favorite Websites</h1>
-	<div class="container d-flex justify-content-between align-items-center py-4">
-	  <form id="search-form" class="input-group" role="search" style="max-width: 500px;">
-		<input
-		  type="text"
-		  id="search-input"
-		  class="form-control"
-		  placeholder="Search Google..."
-		/>
-		<button class="btn btn-outline-primary" type="submit">Search</button>
-	  </form>
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <div class="logo">🔖</div>
+        <div>
+          <h1>Bookmark Cards</h1>
+          <div class="sub">Fast, local, and beautiful. Cards with title & description; links live inside. Live search + JSON backups.</div>
+        </div>
+      </div>
 
-	  <button id="darkToggle" class="btn btn-sm btn-outline-dark ms-3">
-		🌙 Dark Mode
-	  </button>
-	</div>
-    <div class="row" id="site-list">
-      <!-- JavaScript will inject favorite sites here -->
+      <div class="toolbar">
+        <div class="row left">
+          <button id="newCardBtn" class="btn primary">➕ New Card</button>
+          <button id="openAddModal" class="btn">Add Link</button>
+        </div>
+        <div class="row right">
+          <div class="searchWrap">
+            <span class="searchIcon">🔎</span>
+            <input id="searchInput" type="text" placeholder="Search cards (title, description) and links (title, URL, note, host)…"/>
+          </div>
+          <button id="exportBtn" class="btn soft" title="Download .json backup">Backup</button>
+          <label class="btn soft" for="importFile">Restore<input id="importFile" type="file" accept="application/json" /></label>
+          <button id="clearAllBtn" class="btn ghost" title="Clear everything (with confirm)">Clear All</button>
+        </div>
+      </div>
+      <div class="row muted" id="searchStats" aria-live="polite"></div>
     </div>
-  </div>
+  </header>
+
+  <main class="wrap">
+    <div id="cardGrid" class="grid"></div>
+    <div id="emptyState" class="empty hidden">No cards yet. Click <b>New Card</b> to start ✨</div>
+  </main>
+
+  <!-- Card Template -->
+  <template id="cardTpl">
+    <section class="card" data-group-id="">
+      <div class="cardHeader">
+        <div class="cardText">
+          <div class="title"></div>
+          <div class="desc"></div>
+        </div>
+        <span class="spacer"></span>
+        <div class="cardActions">
+          <button class="btn soft editCard" title="Edit card">Edit</button>
+          <button class="btn ghost deleteCard" title="Delete card">Delete</button>
+        </div>
+      </div>
+      <details class="linkBlock">
+        <summary>Links <span class="matchPill hidden" data-role="match-pill"></span></summary>
+        <div class="links"></div>
+        <div class="footer">
+          <button class="btn addInCard">Add link</button>
+        </div>
+      </details>
+    </section>
+  </template>
+
+  <!-- Link Template -->
+  <template id="linkTpl">
+    <div class="link" data-link-id="">
+      <div>
+        <a class="anchor" target="_blank" rel="noopener noreferrer"></a>
+        <div class="meta"></div>
+      </div>
+      <div class="linkActions">
+        <button class="btn soft editLink" title="Edit">Edit</button>
+        <button class="btn danger removeLink" title="Remove">✕</button>
+      </div>
+    </div>
+  </template>
+
+  <!-- Add/Edit Link Modal -->
+  <dialog id="linkModal">
+    <form method="dialog" id="linkForm" class="modalForm">
+      <h2 id="modalTitle">Add Link</h2>
+
+      <label>Destination Card
+        <select id="mCard" name="card"></select>
+      </label>
+
+      <label>URL
+        <input id="mUrl" name="url" type="url" placeholder="https://example.com/article" required>
+      </label>
+      <label>Title
+        <input id="mTitle" name="title" type="text" placeholder="Optional title (defaults to URL)">
+      </label>
+      <label>Note / Tags
+        <input id="mNote" name="note" type="text" placeholder="Comma separated tags">
+      </label>
+      <menu class="modalActions">
+        <button type="reset" class="btn ghost" value="cancel">Cancel</button>
+        <button type="submit" class="btn primary">Save</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <!-- Add/Edit Card Modal -->
+  <dialog id="cardModal">
+    <form method="dialog" id="cardForm" class="modalForm">
+      <h2 id="cardModalTitle">New Card</h2>
+      <label>Card Title
+        <input id="cTitle" name="ctitle" type="text" placeholder="e.g. Research – LLMs" required>
+      </label>
+      <label>Description
+        <textarea id="cDesc" name="cdesc" rows="3" placeholder="Short description for this card"></textarea>
+      </label>
+      <menu class="modalActions">
+        <button type="reset" class="btn ghost" value="cancel">Cancel</button>
+        <button type="submit" class="btn primary">Save</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <!-- Confirm Modal -->
+  <dialog id="confirmModal">
+    <form method="dialog" id="confirmForm" class="modalForm">
+      <h2 id="confirmTitle">Confirm</h2>
+      <p id="confirmMessage">Are you sure?</p>
+      <menu class="modalActions">
+        <button type="reset" class="btn ghost" value="cancel">Cancel</button>
+        <button type="submit" class="btn danger" value="ok">Confirm</button>
+      </menu>
+    </form>
+  </dialog>
 
   <script src="script.js"></script>
 </body>
