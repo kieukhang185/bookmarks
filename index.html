@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>My Bookmark Cards</title>
-  <link rel="icon" type="image/x-icon" href="images/favicon.png">
+  <title>Bookmark Cards</title>
   <meta name="description" content="Card-based bookmark manager with live search, modals, and local backups."/>
-  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -33,7 +33,7 @@
             <input id="searchInput" type="text" placeholder="Search cards (title, description) and links (title, URL, note, host)…"/>
           </div>
           <button id="exportBtn" class="btn soft" title="Download .json backup">Backup</button>
-          <label class="btn soft" for="importFile">Restore<input id="importFile" type="file" accept="application/json" /></label>
+          <label class="btn soft uploadLabel">Restore<input id="importFile" type="file" accept="application/json" /></label>
           <button id="clearAllBtn" class="btn ghost" title="Clear everything (with confirm)">Clear All</button>
         </div>
       </div>
@@ -56,8 +56,13 @@
         </div>
         <span class="spacer"></span>
         <div class="cardActions">
-          <button class="btn soft editCard" title="Edit card">Edit</button>
-          <button class="btn ghost deleteCard" title="Delete card">Delete</button>
+          <div class="menu">
+            <button class="btn ghost menuBtn" title="Menu" aria-haspopup="menu" aria-expanded="false">⋮</button>
+            <div class="menuList" role="menu">
+              <button class="menuItem editCard" role="menuitem">✏️ Edit</button>
+              <button class="menuItem danger deleteCard" role="menuitem">🗑 Delete</button>
+            </div>
+          </div>
         </div>
       </div>
       <details class="linkBlock">

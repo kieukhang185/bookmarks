@@ -1,5 +1,5 @@
 // —— Utilities ——
-const STORAGE_KEY = 'bookmarkGroups.v3'; // new schema: groups keyed by random id
+const STORAGE_KEY = 'bookmarkGroups.v3'; // keep v3 schema
 const $ = (sel, el=document) => el.querySelector(sel);
 const $$ = (sel, el=document) => [...el.querySelectorAll(sel)];
 const uid = () => (crypto?.randomUUID?.() || Math.random().toString(36).slice(2));
@@ -24,53 +24,7 @@ function makeHighlighter(query){
  */
 const store = { groups: {} };
 
-// Migrations (v1 -> v2 -> v3)
-function migrateFromV2IfAny(){
-  if (localStorage.getItem(STORAGE_KEY)) return;
-  const v2 = localStorage.getItem('bookmarkGroups.v2');
-  if(!v2) return migrateFromV1IfAny();
-  try{
-    const d = JSON.parse(v2);
-    const migrated = { groups: {} };
-    for(const oldId in d.groups){
-      const g = d.groups[oldId];
-      const newId = uid();
-      migrated.groups[newId] = {
-        id: newId,
-        title: g.title || g.host || 'Untitled',
-        desc: g.desc || '',
-        tags: g.tags || [],
-        createdAt: Date.now(),
-        links: (g.links||[]).map(l => ({...l, host: hostFrom(l.url)})),
-      };
-    }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-  }catch(e){ console.warn('v2 migration failed', e); }
-}
-function migrateFromV1IfAny(){
-  const v1 = localStorage.getItem('bookmarkGroups.v1');
-  if(!v1) return;
-  try{
-    const d = JSON.parse(v1);
-    const migrated = { groups: {} };
-    for(const oldId in d.groups){
-      const g = d.groups[oldId];
-      const newId = uid();
-      migrated.groups[newId] = {
-        id: newId,
-        title: g.title || g.host || 'Untitled',
-        desc: '',
-        tags: g.tags || [],
-        createdAt: Date.now(),
-        links: (g.links||[]).map(l => ({...l, host: hostFrom(l.url)})),
-      };
-    }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-  }catch(e){ console.warn('v1 migration failed', e); }
-}
-
 function load(){
-  migrateFromV2IfAny();
   const raw = localStorage.getItem(STORAGE_KEY);
   if(!raw) return;
   try{
@@ -115,7 +69,6 @@ function addLink({ groupId, url, title = '', note = '' }){
 function removeLink(groupId, linkId){
   const g = store.groups[groupId]; if(!g) return;
   g.links = g.links.filter(l => l.id !== linkId);
-  // Don't auto-delete empty card anymore
   save();
 }
 
@@ -260,17 +213,30 @@ function renderCard(g){
     details.open = false;
   }
 
-  $('.deleteCard', node).addEventListener('click', async () => {
-    const ok = await confirmDialog('Delete card', `Delete “${g.title || 'this card'}”? This removes ${g.links.length} link(s).`);
-    if(ok){ deleteGroup(g.id); render(); }
-  });
+  // Kebab menu wiring
+  const menu = $('.menu', node);
+  const menuBtn = $('.menuBtn', node);
+  const menuList = $('.menuList', node);
 
-  $('.addInCard', node).addEventListener('click', () => {
-    openLinkModal({ mode:'add', groupId: g.id });
+  menuBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    closeAllMenus();
+    menu.classList.toggle('open');
+    menuBtn.setAttribute('aria-expanded', menu.classList.contains('open') ? 'true' : 'false');
   });
 
   $('.editCard', node).addEventListener('click', () => {
     openCardModal({ mode:'edit', group: g });
+    closeAllMenus();
+  });
+  $('.deleteCard', node).addEventListener('click', async () => {
+    const ok = await confirmDialog('Delete card', `Delete “${g.title || 'this card'}”? This removes ${g.links.length} link(s).`);
+    if(ok){ deleteGroup(g.id); render(); }
+    closeAllMenus();
+  });
+
+  $('.addInCard', node).addEventListener('click', () => {
+    openLinkModal({ mode:'add', groupId: g.id });
   });
 
   return { node, cardMatch: !!(titleMatch || descMatch), linkMatchesCount: linkMatches };
@@ -302,6 +268,16 @@ function renderLink(g, l){
 
   return node;
 }
+
+// —— Menu helpers ——
+function closeAllMenus(){
+  $$('.menu.open').forEach(m => {
+    m.classList.remove('open');
+    const btn = $('.menuBtn', m);
+    if(btn) btn.setAttribute('aria-expanded', 'false');
+  });
+}
+document.addEventListener('click', closeAllMenus);
 
 // —— Modal helpers ——
 function populateCardSelect(selectedId=''){
@@ -386,7 +362,6 @@ linkForm.addEventListener('submit', (e)=>{
 
   if(mode === 'add'){
     if(!groupId){
-      // If no destination chosen, create a quick card named by host
       const card = newCard({ title: hostFrom(url) || 'New Card', desc: '' });
       groupId = card.id;
     }

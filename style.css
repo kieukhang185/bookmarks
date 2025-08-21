@@ -59,8 +59,8 @@ input::placeholder, textarea::placeholder{ color: #94a3b8; }
 .btn.ghost{ background: transparent; color: var(--muted); border:1px dashed var(--border); box-shadow:none }
 .btn.danger{ background: var(--danger); color:white; border: none; }
 
-label.btn{ position: relative; overflow: hidden; }
-label.btn input[type="file"]{ position:absolute; inset:0; opacity:0; cursor:pointer; }
+label.uploadLabel{ position: relative; overflow: hidden; }
+label.uploadLabel input[type="file"]{ position:absolute; inset:0; opacity:0; cursor:pointer; }
 
 /* layout */
 main{ padding: 20px 18px; }
@@ -74,7 +74,29 @@ main{ padding: 20px 18px; }
 .cardHeader{ display:flex; gap:10px; align-items:flex-start; margin-bottom:8px }
 .cardText .title{ font-weight:800; font-size: 18px; }
 .cardText .desc{ color: var(--muted); font-size: 13px; margin-top: 6px; }
-.cardActions{ display:flex; gap:8px; }
+
+/* kebab menu */
+.cardActions{ display:flex; gap:8px; position: relative; }
+.menu{ position: relative; }
+.menuBtn{ font-size: 18px; width: 36px; height: 36px; padding: 0; border-radius: 50%; display: grid; place-items:center; }
+.menuList{
+  position: absolute; right: 0; top: calc(100% + 6px);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  display: none;
+  flex-direction: column;
+  min-width: 140px;
+  z-index: 20;
+  overflow: hidden;
+}
+.menu.open .menuList{ display: flex; }
+.menuItem{
+  background: none; border: none; padding: 10px 12px; text-align: left; cursor: pointer; color: var(--text); font-size: 14px;
+}
+.menuItem:hover{ background: var(--panel-2); }
+.menuItem.danger{ color: #b91c1c; }
 
 .links{ display:flex; flex-direction: column; gap:8px; margin-top:8px }
 .link{
@@ -126,4 +148,8 @@ mark{ background: var(--highlight); padding: 0 .15em; border-radius: 4px; }
 @media (max-width: 900px){
   .toolbar{ grid-template-columns: 1fr; }
   .row.right{ justify-content: flex-start; }
+}
+
+.addInCard{
+	margin-top: 10px;
 }
